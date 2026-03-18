@@ -1,42 +1,16 @@
 #!/bin/bash
 # install.sh - Install surge binary
+# Usage: curl -sSL https://raw.githubusercontent.com/AtomicWasTaken/surge/main/scripts/install.sh | sh
 set -e
 
-REPO="AtomicWasTaken/surge"
+echo "Installing surge via go install..."
+go install github.com/AtomicWasTaken/surge@latest
 
-# Detect latest release
-LATEST=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || echo "latest")
-
-# Detect OS and architecture
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-ARCH=$(uname -m)
-[ "$ARCH" = "x86_64" ] && ARCH="amd64"
-[ "$ARCH" = "arm64" ] && ARCH="arm64"
-
-EXT=""
-if [ "$OS" = "windows" ]; then
-  EXT=".exe"
-fi
-
-URL="https://github.com/$REPO/releases/download/$LATEST/surge-${OS}-${ARCH}${EXT}"
-
-# Check if curl is available
-if ! command -v curl &> /dev/null; then
-  echo "curl is required but not installed"
-  exit 1
-fi
-
-echo "Installing surge from $URL"
-curl -sSL "$URL" -o /tmp/surge
-chmod +x /tmp/surge
-
-# Install to user-local bin or system-wide
-if [ -w /usr/local/bin ]; then
-  mv /tmp/surge /usr/local/bin/surge
-  echo "Installed to /usr/local/bin/surge"
+# Verify installation
+if command -v surge &> /dev/null; then
+    echo "Successfully installed surge $(surge --version)"
 else
-  mkdir -p "$HOME/.local/bin"
-  mv /tmp/surge "$HOME/.local/bin/surge"
-  echo "Installed to $HOME/.local/bin/surge"
-  echo "Make sure $HOME/.local/bin is in your PATH"
+    echo "Installation failed - surge not found in PATH"
+    echo "Make sure ~/go/bin is in your PATH"
+    exit 1
 fi

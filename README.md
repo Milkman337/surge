@@ -16,19 +16,7 @@ AI-powered PR code review with style.
 
 ## Installation
 
-### Binary download
-
-```bash
-curl -sSL https://install.surge.sh | sh
-```
-
-### Homebrew
-
-```bash
-brew install AtomicWasTaken/tap/surge
-```
-
-### Go install
+### Go install (recommended)
 
 ```bash
 go install github.com/AtomicWasTaken/surge@latest

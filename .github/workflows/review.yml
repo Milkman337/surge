@@ -18,8 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install surge
-        run: |
-          curl -sSL https://install.surge.sh | sh
+        run: go install github.com/AtomicWasTaken/surge@latest
 
       - name: Run review
         if: github.event_name == 'pull_request'
