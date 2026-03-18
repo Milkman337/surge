@@ -16,6 +16,7 @@ type Config struct {
 	Output       OutputConfig      `mapstructure:"output"`
 	Categories   CategoriesConfig  `mapstructure:"categories"`
 	GitHub       GitHubConfig      `mapstructure:"github"`
+	Verbose      bool              `mapstructure:"verbose"`
 
 	// Inline comment settings
 	MaxInlineComments     int  `mapstructure:"maxInlineComments"`

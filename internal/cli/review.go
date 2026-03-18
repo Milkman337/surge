@@ -26,7 +26,7 @@ func runReview(cmd *cobra.Command, args []string) error {
 
 	// Apply explicit flag overrides
 	if cmd.Flags().Changed("verbose") {
-		cfg.Output.Colorize = flagVerbose
+		cfg.Verbose = flagVerbose
 	}
 	_ = cmd // mark as used
 
@@ -58,6 +58,11 @@ func runReview(cmd *cobra.Command, args []string) error {
 	prNumber := cfg.GitHub.PRNumber
 	if prNumber <= 0 {
 		return fmt.Errorf("PR number is required (use --pr flag or set github.prNumber in config)")
+	}
+
+	if cfg.Verbose {
+		fmt.Printf("[debug] review config owner=%s repo=%s pr=%d provider=%s model=%s base_url=%s context=%s dry_run=%t\n",
+			owner, repo, prNumber, cfg.AI.Provider, cfg.AI.Model, cfg.AI.BaseURL, cfg.ContextDepth, flagDryRun)
 	}
 
 	// Check for required tokens

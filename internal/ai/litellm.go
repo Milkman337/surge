@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -31,6 +32,10 @@ func NewLiteLLMClient(baseURL, apiKey, model string) *LiteLLMClient {
 // Complete sends a completion request to the litellm proxy.
 func (c *LiteLLMClient) Complete(ctx context.Context, req *CompletionRequest) (*CompletionResponse, error) {
 	url := c.baseURL + "/v1/chat/completions"
+	if req.Debug {
+		fmt.Fprintf(os.Stderr, "[debug] litellm request url=%s model=%s max_tokens=%d temperature=%.2f messages=%d\n",
+			url, req.Model, req.MaxTokens, req.Temperature, len(req.Messages))
+	}
 
 	// Convert messages to OpenAI format
 	messages := make([]map[string]string, 0, len(req.Messages)+1)
@@ -72,7 +77,13 @@ func (c *LiteLLMClient) Complete(ctx context.Context, req *CompletionRequest) (*
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		if req.Debug {
+			fmt.Fprintf(os.Stderr, "[debug] litellm response status=%s body=%s\n", resp.Status, strings.TrimSpace(string(respBody)))
+		}
 		return nil, fmt.Errorf("litellm API error (%s): %s", resp.Status, string(respBody))
+	}
+	if req.Debug {
+		fmt.Fprintf(os.Stderr, "[debug] litellm response status=%s\n", resp.Status)
 	}
 
 	var openAIResp struct {
