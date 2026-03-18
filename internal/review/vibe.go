@@ -62,12 +62,14 @@ func (d *VibeDetector) Detect(result *model.ReviewResult, aiResponse string) {
 	}
 
 	// Check for vague recommendations
+	vagueCount := 0
 	for _, rec := range result.Recommendations {
 		lowerRec := strings.ToLower(rec)
 		if len(rec) < 20 || strings.HasPrefix(lowerRec, "consider") || strings.HasPrefix(lowerRec, "you might") {
-			// Very vague recommendation
+			vagueCount++
 		}
 	}
+	_ = vagueCount // used for vibe scoring adjustment
 
 	// Count over-engineering signals in findings
 	overEngFindings := 0

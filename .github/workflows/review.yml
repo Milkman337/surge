@@ -1,0 +1,38 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install surge
+        run: |
+          curl -sSL https://install.surge.sh | sh
+
+      - name: Run review
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SURGE_AI_API_KEY: ${{ secrets.SURGE_AI_API_KEY }}
+        run: |
+          surge review --pr ${{ github.event.pull_request.number }} --dry-run
+
+      - name: Post review to PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SURGE_AI_API_KEY: ${{ secrets.SURGE_AI_API_KEY }}
+        run: |
+          surge review --pr ${{ github.event.pull_request.number }}
