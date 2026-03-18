@@ -97,6 +97,10 @@ func (c *LiteLLMClient) completeChatCompletions(ctx context.Context, req *Comple
 				lastErr = fmt.Errorf("litellm API error (%d): %s", status, string(respBody))
 				continue // try next token field
 			}
+			if status >= http.StatusInternalServerError {
+				lastErr = fmt.Errorf("litellm API error (%d): %s", status, string(respBody))
+				break // try next URL variant
+			}
 			return nil, fmt.Errorf("litellm API error (%d): %s", status, string(respBody))
 		}
 	}
@@ -196,6 +200,10 @@ func (c *LiteLLMClient) completeResponses(ctx context.Context, req *CompletionRe
 				lastErr = fmt.Errorf("litellm responses API error (%d): %s", status, string(respBody))
 				continue // try next token field
 			}
+			if status >= http.StatusInternalServerError {
+				lastErr = fmt.Errorf("litellm responses API error (%d): %s", status, string(respBody))
+				break // try next URL variant
+			}
 			return nil, fmt.Errorf("litellm responses API error (%d): %s", status, string(respBody))
 		}
 	}
@@ -234,25 +242,36 @@ func (c *LiteLLMClient) doJSONPost(ctx context.Context, url string, payload map[
 }
 
 func candidateResponsesURLs(base string) []string {
-	base = strings.TrimSuffix(base, "/")
-	candidates := []string{
-		base + "/v1/responses",
-		base + "/v1/openai/v1/responses",
-	}
-	if strings.HasSuffix(base, "/v1") {
-		candidates = append(candidates, base+"/responses")
+	var candidates []string
+	for _, b := range normalizedBaseCandidates(base) {
+		candidates = append(candidates,
+			b+"/v1/responses",
+			b+"/v1/openai/v1/responses",
+			b+"/responses",
+		)
 	}
 	return uniqueStrings(candidates)
 }
 
 func candidateChatCompletionURLs(base string) []string {
+	var candidates []string
+	for _, b := range normalizedBaseCandidates(base) {
+		candidates = append(candidates,
+			b+"/v1/chat/completions",
+			b+"/v1/openai/v1/chat/completions",
+			b+"/chat/completions",
+		)
+	}
+	return uniqueStrings(candidates)
+}
+
+func normalizedBaseCandidates(base string) []string {
 	base = strings.TrimSuffix(base, "/")
 	candidates := []string{
-		base + "/v1/chat/completions",
-		base + "/v1/openai/v1/chat/completions",
-	}
-	if strings.HasSuffix(base, "/v1") {
-		candidates = append(candidates, base+"/chat/completions")
+		base,
+		strings.TrimSuffix(base, "/v1"),
+		strings.TrimSuffix(base, "/openai/v1"),
+		strings.TrimSuffix(base, "/v1/openai/v1"),
 	}
 	return uniqueStrings(candidates)
 }

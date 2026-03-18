@@ -83,6 +83,10 @@ func TestLiteLLMClientCompleteFallsBackToChatCompletions(t *testing.T) {
 			w.WriteHeader(http.StatusBadRequest)
 			_, err := fmt.Fprint(w, `{"detail":"Unsupported parameter: max_output_tokens"}`)
 			require.NoError(t, err)
+		case "/responses":
+			w.WriteHeader(http.StatusNotFound)
+			_, err := fmt.Fprint(w, `{"detail":"Not Found"}`)
+			require.NoError(t, err)
 		case "/v1/openai/v1/responses":
 			w.WriteHeader(http.StatusNotFound)
 			_, err := fmt.Fprint(w, `{"detail":"Not Found"}`)
