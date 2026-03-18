@@ -21,11 +21,11 @@ jobs:
           go-version: '1.23'
 
       - name: Build surge
-        run: go build -o ./surge ./cmd/surge
+        run: go build -o /tmp/surge ./cmd/surge
 
       - name: Run review
         env:
           SURGE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SURGE_AI_API_KEY: ${{ secrets.SURGE_AI_API_KEY }}
           SURGE_AI_BASE_URL: ${{ secrets.SURGE_AI_BASE_URL }}
-        run: ./surge review --pr ${{ github.event.pull_request.number }}
+        run: /tmp/surge review --pr ${{ github.event.pull_request.number }}
