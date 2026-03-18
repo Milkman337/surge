@@ -19,7 +19,7 @@ AI-powered PR code review with style.
 ### Go install (recommended)
 
 ```bash
-go install github.com/AtomicWasTaken/surge@latest
+go install github.com/AtomicWasTaken/surge/cmd/surge@latest
 ```
 
 ### From source
@@ -27,7 +27,7 @@ go install github.com/AtomicWasTaken/surge@latest
 ```bash
 git clone https://github.com/AtomicWasTaken/surge.git
 cd surge
-make install
+go install ./cmd/surge
 ```
 
 ## Quick Start

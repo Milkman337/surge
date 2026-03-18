@@ -4,7 +4,7 @@
 set -e
 
 echo "Installing surge via go install..."
-go install github.com/AtomicWasTaken/surge@latest
+go install github.com/AtomicWasTaken/surge/cmd/surge@latest
 
 # Verify installation
 if command -v surge &> /dev/null; then
