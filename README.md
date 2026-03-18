@@ -151,3 +151,8 @@ Flags:
 ## License
 
 MIT
+
+## Releases
+
+- Commits merged into `main` are processed by Release Please to produce a semver tag (for example `v1.2.3`).
+- Tag creation triggers the release workflow, which builds and uploads the latest cross-platform binaries as release assets.
