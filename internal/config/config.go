@@ -16,6 +16,7 @@ type Config struct {
 	Output       OutputConfig      `mapstructure:"output"`
 	Categories   CategoriesConfig  `mapstructure:"categories"`
 	GitHub       GitHubConfig      `mapstructure:"github"`
+	Verbose      bool              `mapstructure:"verbose"`
 
 	// Inline comment settings
 	MaxInlineComments     int  `mapstructure:"maxInlineComments"`
@@ -142,7 +143,7 @@ func Load(configPath string) (*Config, error) {
 func applyDefaults(v *viper.Viper) {
 	// AI defaults
 	v.SetDefault("ai.provider", "litellm")
-	v.SetDefault("ai.model", "anthropic/claude-3-5-sonnet-20241022")
+	v.SetDefault("ai.model", "claude-sonnet-4-6")
 	v.SetDefault("ai.baseUrl", "http://localhost:4000")
 
 	// Context defaults

@@ -15,11 +15,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install surge
-        run: go install github.com/AtomicWasTaken/surge/cmd/surge@latest
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build surge
+        run: go build -o /tmp/surge ./cmd/surge
 
       - name: Run review
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SURGE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SURGE_AI_API_KEY: ${{ secrets.SURGE_AI_API_KEY }}
-        run: surge review --pr ${{ github.event.pull_request.number }}
+          SURGE_AI_BASE_URL: ${{ secrets.SURGE_AI_BASE_URL }}
+          SURGE_AI_MODEL: ${{ secrets.SURGE_AI_MODEL }}
+        run: /tmp/surge review --pr ${{ github.event.pull_request.number }} --verbose

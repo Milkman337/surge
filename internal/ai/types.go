@@ -9,6 +9,7 @@ type CompletionRequest struct {
 	MaxTokens   int
 	Temperature float64
 	System      string
+	Debug       bool
 }
 
 // Message represents a chat message.

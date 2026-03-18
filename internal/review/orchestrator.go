@@ -62,6 +62,9 @@ func (o *Orchestrator) Review(ctx context.Context, owner, repo string, prNumber 
 
 	// Step 3: Filter files based on config
 	files = diff.FilterPaths(files, o.cfg.IncludePaths, o.cfg.ExcludePaths)
+	if o.cfg.Verbose {
+		fmt.Printf("[debug] fetched pr title=%q changed_files=%d filtered_files=%d\n", pr.Title, pr.ChangedFiles, len(files))
+	}
 
 	// Step 4: Build PR context for the prompt
 	prCtx := o.buildPRContext(pr, files)
@@ -85,6 +88,10 @@ func (o *Orchestrator) Review(ctx context.Context, owner, repo string, prNumber 
 		},
 		MaxTokens:   o.cfg.MaxTokens,
 		Temperature: o.cfg.Temperature,
+		Debug:       o.cfg.Verbose,
+	}
+	if o.cfg.Verbose {
+		fmt.Printf("[debug] prompt sizes system_chars=%d user_chars=%d\n", len(categories), len(userPrompt))
 	}
 
 	aiResp, err := o.aiClient.Complete(ctx, aiReq)

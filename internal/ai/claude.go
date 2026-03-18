@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -31,6 +32,10 @@ func NewClaudeClient(apiKey, model string) *ClaudeClient {
 // Complete sends a completion request to the Claude API.
 func (c *ClaudeClient) Complete(ctx context.Context, req *CompletionRequest) (*CompletionResponse, error) {
 	url := c.baseURL + "/messages"
+	if req.Debug {
+		fmt.Fprintf(os.Stderr, "[debug] claude request url=%s model=%s max_tokens=%d temperature=%.2f messages=%d\n",
+			url, c.model, req.MaxTokens, req.Temperature, len(req.Messages))
+	}
 
 	// Build messages in Anthropic format
 	messages := make([]map[string]string, 0, len(req.Messages)+1)
@@ -79,6 +84,9 @@ func (c *ClaudeClient) Complete(ctx context.Context, req *CompletionRequest) (*C
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		if req.Debug {
+			fmt.Fprintf(os.Stderr, "[debug] claude response status=%s body=%s\n", resp.Status, strings.TrimSpace(string(respBody)))
+		}
 		var errResp struct {
 			Error struct {
 				Type    string `json:"type"`
@@ -89,6 +97,9 @@ func (c *ClaudeClient) Complete(ctx context.Context, req *CompletionRequest) (*C
 			return nil, fmt.Errorf("claude API error (%s): %s", resp.Status, errResp.Error.Message)
 		}
 		return nil, fmt.Errorf("claude API error (%s): %s", resp.Status, string(respBody))
+	}
+	if req.Debug {
+		fmt.Fprintf(os.Stderr, "[debug] claude response status=%s\n", resp.Status)
 	}
 
 	var claudeResp struct {

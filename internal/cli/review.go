@@ -8,37 +8,16 @@ import (
 	"github.com/AtomicWasTaken/surge/internal/github"
 	"github.com/AtomicWasTaken/surge/internal/review"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func runReview(cmd *cobra.Command, args []string) error {
-	// Bind flags to viper for config override
-	bindings := map[string]string{
-		"github-token": "github.token",
-		"owner":        "github.owner",
-		"repo":         "github.repo",
-		"pr":           "github.prNumber",
-		"ai-provider":  "ai.provider",
-		"ai-model":     "ai.model",
-		"ai-base-url":  "ai.baseUrl",
-		"ai-api-key":   "ai.apiKey",
-		"context-depth": "contextDepth",
-		"output":       "output.format",
-		"max-inline":   "maxInlineComments",
-		"max-tokens":   "maxTokens",
-		"temperature":  "temperature",
-	}
-	for flag, key := range bindings {
-		if cmd.Flags().Changed(flag) {
-			viper.Set(key, cmd.Flag(flag).Value.String())
-		}
-	}
-
 	// Load config
 	cfg, err := config.Load(flagConfig)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
+
+	applyReviewFlagOverrides(cmd, cfg)
 
 	// Validate config
 	if err := cfg.Validate(); err != nil {
@@ -47,7 +26,7 @@ func runReview(cmd *cobra.Command, args []string) error {
 
 	// Apply explicit flag overrides
 	if cmd.Flags().Changed("verbose") {
-		cfg.Output.Colorize = flagVerbose
+		cfg.Verbose = flagVerbose
 	}
 	_ = cmd // mark as used
 
@@ -79,6 +58,11 @@ func runReview(cmd *cobra.Command, args []string) error {
 	prNumber := cfg.GitHub.PRNumber
 	if prNumber <= 0 {
 		return fmt.Errorf("PR number is required (use --pr flag or set github.prNumber in config)")
+	}
+
+	if cfg.Verbose {
+		fmt.Printf("[debug] review config owner=%s repo=%s pr=%d provider=%s model=%s base_url=%s context=%s dry_run=%t\n",
+			owner, repo, prNumber, cfg.AI.Provider, cfg.AI.Model, cfg.AI.BaseURL, cfg.ContextDepth, flagDryRun)
 	}
 
 	// Check for required tokens
@@ -125,4 +109,46 @@ func runReview(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func applyReviewFlagOverrides(cmd *cobra.Command, cfg *config.Config) {
+	if cmd.Flags().Changed("github-token") {
+		cfg.GitHub.Token, _ = cmd.Flags().GetString("github-token")
+	}
+	if cmd.Flags().Changed("owner") {
+		cfg.GitHub.Owner, _ = cmd.Flags().GetString("owner")
+	}
+	if cmd.Flags().Changed("repo") {
+		cfg.GitHub.Repo, _ = cmd.Flags().GetString("repo")
+	}
+	if cmd.Flags().Changed("pr") {
+		cfg.GitHub.PRNumber, _ = cmd.Flags().GetInt("pr")
+	}
+	if cmd.Flags().Changed("ai-provider") {
+		cfg.AI.Provider, _ = cmd.Flags().GetString("ai-provider")
+	}
+	if cmd.Flags().Changed("ai-model") {
+		cfg.AI.Model, _ = cmd.Flags().GetString("ai-model")
+	}
+	if cmd.Flags().Changed("ai-base-url") {
+		cfg.AI.BaseURL, _ = cmd.Flags().GetString("ai-base-url")
+	}
+	if cmd.Flags().Changed("ai-api-key") {
+		cfg.AI.APIKey, _ = cmd.Flags().GetString("ai-api-key")
+	}
+	if cmd.Flags().Changed("context-depth") {
+		cfg.ContextDepth, _ = cmd.Flags().GetString("context-depth")
+	}
+	if cmd.Flags().Changed("output") {
+		cfg.Output.Format, _ = cmd.Flags().GetString("output")
+	}
+	if cmd.Flags().Changed("max-inline") {
+		cfg.MaxInlineComments, _ = cmd.Flags().GetInt("max-inline")
+	}
+	if cmd.Flags().Changed("max-tokens") {
+		cfg.MaxTokens, _ = cmd.Flags().GetInt("max-tokens")
+	}
+	if cmd.Flags().Changed("temperature") {
+		cfg.Temperature, _ = cmd.Flags().GetFloat64("temperature")
+	}
 }
