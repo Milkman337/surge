@@ -192,18 +192,20 @@ func useResponsesAPI(model string) bool {
 	return strings.Contains(strings.ToLower(model), "codex")
 }
 
-func responsesInputFromMessages(messages []Message) string {
-	if len(messages) == 1 && messages[0].Role == "user" {
-		return messages[0].Content
-	}
-	var sb strings.Builder
+func responsesInputFromMessages(messages []Message) []map[string]interface{} {
+	items := make([]map[string]interface{}, 0, len(messages))
 	for _, m := range messages {
-		sb.WriteString(strings.ToUpper(m.Role))
-		sb.WriteString(": ")
-		sb.WriteString(m.Content)
-		sb.WriteString("\n\n")
+		items = append(items, map[string]interface{}{
+			"role": m.Role,
+			"content": []map[string]string{
+				{
+					"type": "input_text",
+					"text": m.Content,
+				},
+			},
+		})
 	}
-	return strings.TrimSpace(sb.String())
+	return items
 }
 
 func parseResponsesSSE(body []byte) (string, int, int, string, error) {

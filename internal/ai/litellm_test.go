@@ -2,7 +2,9 @@ package ai
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -36,8 +38,17 @@ func TestLiteLLMClientCompleteUsesResponsesForCodexModels(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/v1/responses", r.URL.Path)
 		assert.Equal(t, "POST", r.Method)
+
+		body, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		var payload map[string]interface{}
+		require.NoError(t, json.Unmarshal(body, &payload))
+		input, ok := payload["input"].([]interface{})
+		require.True(t, ok)
+		require.Len(t, input, 1)
+
 		w.WriteHeader(http.StatusOK)
-		_, err := fmt.Fprint(w,
+		_, err = fmt.Fprint(w,
 			"data: {\"type\":\"response.output_text.delta\",\"delta\":\"ok\"}\n\n"+
 				"data: {\"type\":\"response.completed\",\"response\":{\"status\":\"completed\",\"usage\":{\"input_tokens\":5,\"output_tokens\":1}}}\n\n"+
 				"data: [DONE]\n\n",
